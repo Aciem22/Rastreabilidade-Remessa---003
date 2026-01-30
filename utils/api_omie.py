@@ -1,9 +1,16 @@
 import streamlit as st
 import requests
 import json
+import datetime
+from  datetime import datetime,timedelta
 
 #APP_KEY = st.secrets["APP_KEY"]
 #APP_SECRET = st.secrets["APP_SECRET"]
+
+ontem = datetime.now() - timedelta(days=1)
+ontem_formatado = ontem.strftime("%d/%m/%Y")
+
+print(ontem_formatado)
 
 APP_KEY = "4684313315682"
 APP_SECRET = "b69ac151a9994436d2d444ecd26fcc2b"
@@ -58,9 +65,10 @@ def ListarRemessas(codigo_cliente):
             "param": [
                 {
                     "nPagina": pagina,
-                    "nRegistrosPorPagina": 200,
+                    "nRegistrosPorPagina": 100,
                     "cExibirDetalhes": "N",
-                    "nIdCliente": codigo_cliente
+                    "nIdCliente": codigo_cliente,
+                    "dtAltDe": ontem_formatado
                 }
             ]
         }
