@@ -46,30 +46,52 @@ df_lotes = st.session_state.df_lotes
 # --------------------------------------------------
 # INPUT CLIENTE
 # --------------------------------------------------
-col1, col2 = st.columns([2, 1])
+col1, col_bt, col2 = st.columns([3, 1, 3])
 
 with col1:
-    cnpj_input = st.text_input("CNPJ do cliente:", max_chars=20)
+    cnpj_input = st.text_input(
+        "CNPJ do cliente:",
+        max_chars=20,
+        key="cnpj_input"
+    )
 
-    if cnpj_input:
-        if "codigo_cliente" not in st.session_state:
-            try:
-                lista_clientes = ListarClientes(cnpj_input)
-            except Exception:
-                st.error("Erro de conexão com a Omie.")
-                st.stop()
+with col_bt:
+    st.text("")
+    st.text("")
+    pesquisar = st.button("🔍 Pesquisar")
 
-            if not lista_clientes:
-                st.error("Cliente não encontrado para o CNPJ informado.")
-                st.stop()
+if pesquisar:
+    # 🔥 limpa qualquer resíduo da pesquisa anterior
+    for key in [
+        "lista_remessas",
+        "codigo_cliente",
+        "dados_remessa",
+        "remessa_atual",
+        "codigo_remessa",
+    ]:
+        st.session_state.pop(key, None)
 
-            st.session_state["codigo_cliente"] = lista_clientes[0]
+    if not cnpj_input:
+        st.warning("Informe um CNPJ para pesquisar.")
+        st.stop()
 
-        codigo_cliente = st.session_state["codigo_cliente"]
+    with st.spinner("Consultando cliente..."):
+        try:
+            lista_clientes = ListarClientes(cnpj_input)
+        except Exception:
+            st.error("Erro de conexão com a Omie.")
+            st.stop()
 
-        if "lista_remessas" not in st.session_state:
-            st.session_state["lista_remessas"] = ListarRemessas(codigo_cliente) or {}
+        if not lista_clientes:
+            st.error("Cliente não encontrado para o CNPJ informado.")
+            st.stop()
 
+        codigo_cliente = lista_clientes[0]
+        st.session_state["codigo_cliente"] = codigo_cliente
+
+        st.session_state["lista_remessas"] = (
+            ListarRemessas(codigo_cliente) or {}
+        )
 
 with col2:
     if st.session_state.get("lista_remessas"):
@@ -77,11 +99,11 @@ with col2:
             "Escolha a remessa:",
             options=list(st.session_state["lista_remessas"].keys()),
             index=None,
-            placeholder="Selecione uma remessa"
+            placeholder="Selecione uma remessa",
+            key="select_remessa"
         )
     else:
         numero_remessa = None
-
 
 # --------------------------------------------------
 # CONSULTA REMESSA (CACHE MANUAL)
@@ -112,7 +134,6 @@ if numero_remessa:
     st.markdown(
         f"### Pedido Nº {numero_remessa} — {qtd_skus} SKU(s) | {total_qtde} item(ns)"
     )
-
 
     # --------------------------------------------------
     # FORM
@@ -238,5 +259,14 @@ if numero_remessa:
                 nCodCli
             )
 
-            st.success("✅ Remessa enviada com sucesso!")
-            st.stop()
+            st.session_state["remessa_salva"] = True
+
+            # limpa cache antes de reiniciar
+            st.cache_data.clear()
+
+            st.rerun()
+
+    placeholder_sucesso = st.empty()
+
+    if st.session_state.pop("remessa_salva", False):
+        placeholder_sucesso.success("✅ Remessa alterada com sucesso!")
