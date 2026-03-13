@@ -27,7 +27,6 @@ st.set_page_config(page_title="Cadastro de Lotes", layout="wide")
 
 st.title("🔍 Cadastro de Rastreabilidade - Remessas 003")
 
-
 # --------------------------------------------------
 # PLANILHA (CACHE)
 # --------------------------------------------------
@@ -42,6 +41,7 @@ if st.button("🔄 Recarregar Planilha"):
 
 df_lotes = st.session_state.df_lotes
 
+st.warning("Digite um CNPJ para pesquisar. O CNPJ da Matriz aparece por padrão")
 
 # --------------------------------------------------
 # INPUT CLIENTE
@@ -49,6 +49,9 @@ df_lotes = st.session_state.df_lotes
 col1, col_bt, col2 = st.columns([3, 1, 3])
 
 with col1:
+    if "cnpj_input" not in st.session_state:
+        st.session_state.cnpj_input = "42.876.974/0001-83"
+
     cnpj_input = st.text_input(
         "CNPJ do cliente:",
         max_chars=20,
@@ -108,12 +111,12 @@ with col2:
 # --------------------------------------------------
 # CONSULTA REMESSA (CACHE MANUAL)
 # --------------------------------------------------
+if pesquisar and not st.session_state.get("lista_remessas"):
+    st.warning("Nenhuma remessa foi encontrada para este CNPJ nos últimos 3 dias.")
+
 if numero_remessa:
 
-    if (
-        "remessa_atual" not in st.session_state
-        or st.session_state["remessa_atual"] != numero_remessa
-    ):
+    if ("remessa_atual" not in st.session_state or st.session_state["remessa_atual"] != numero_remessa):
         with st.spinner("Consultando remessa..."):
             codigo_remessa = st.session_state["lista_remessas"][numero_remessa]
             st.session_state["codigo_remessa"] = codigo_remessa
@@ -270,3 +273,5 @@ if numero_remessa:
 
     if st.session_state.pop("remessa_salva", False):
         placeholder_sucesso.success("✅ Remessa alterada com sucesso!")
+
+
