@@ -188,7 +188,8 @@ if numero_remessa:
                     )
                     valores_digitados[f"validade_{idx}_{numero_remessa}"] = validade
 
-                st.markdown(f"**Quantidade:** {quantidade}")
+                qtde_editada = st.number_input("Quantidade", value=int(quantidade), min_value=0,step=1,key=f"qtde_{idx}_{numero_remessa}")
+                valores_digitados[f"qtde_{idx}_{numero_remessa}"] = qtde_editada
 
         st.markdown("---")
 
@@ -213,6 +214,8 @@ if numero_remessa:
 
                 lote = valores_digitados.get(f"lote_{idx}_{numero_remessa}", "")
                 validade = valores_digitados.get(f"validade_{idx}_{numero_remessa}", "")
+
+                qtde_final= valores_digitados.get(f"qtde_{idx}_{numero_remessa}",nQtde)
 
                 if lote in ["S/L", "-"]:
                     lote = ""
@@ -245,13 +248,13 @@ if numero_remessa:
                 produtos_finalizados.append({
                     "nCodProd": sku,
                     "nCodIt": nCodIt,
-                    "nQtde": nQtde,
+                    "nQtde": qtde_final,
                     "nValUnit": nValUnit,
                     "rastreabilidade": {
                         "numeroLote": lote,
                         "dataFabricacaoLote": fabricacao_str,
                         "dataValidadeLote": validade_str,
-                        "qtdeProdutoLote": nQtde
+                        "qtdeProdutoLote": qtde_final
                     }
                 })
 
